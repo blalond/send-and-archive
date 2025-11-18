@@ -2,10 +2,10 @@
 {
   "manifest_version": 3,
   "name": "Send and Archive",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Send your message and automatically archive the original message being replied to",
   "author": "Your Name",
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "send-and-archive@example.com",
       "strict_min_version": "128.0"
@@ -16,6 +16,7 @@
   },
   "permissions": [
     "compose",
+    "compose.send",
     "messagesRead",
     "messagesMove",
     "accountsRead",
@@ -33,7 +34,7 @@
   "commands": {
     "send-and-archive": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Enter"
+        "default": "Ctrl+Shift+S"
       },
       "description": "Send and Archive"
     }

@@ -5,10 +5,9 @@ A Thunderbird extension that adds a "Send and Archive" feature to compose window
 
 ## Features
 
-- **Toolbar Button**: Adds a "Send and Archive" button to the compose window toolbar
-- **Keyboard Shortcut**: Use `Ctrl+Shift+Enter` to quickly send and archive
-- **Context Menu**: Right-click the toolbar button for additional options
-- **Smart Archiving**: Only archives when replying to or forwarding messages (not for new messages)
+- **Toolbar Button**: Adds a "Send and Archive" button to the compose window toolbar (only visible in reply/forward windows)
+- **Keyboard Shortcut**: Use `Ctrl+Shift+S` to quickly send and archive
+- **Smart Archiving**: Only works when replying to or forwarding messages (button disabled for new messages)
 - **Native Integration**: Uses Thunderbird's built-in archive functionality that respects your archive settings
 - **Configurable Notifications**: Enable or disable success notifications via the options page
 - **Error Handling**: Only archives if the send operation succeeds
@@ -30,7 +29,7 @@ To create an installable XPI file:
 
 ```bash
 cd thunderbird-send-and-archive
-zip -r send-and-archive.xpi *
+zip -r send-and-archive-v1.0.1.xpi manifest.json background.js options.html options.js icons/ -x "*.DS_Store" "*.git*"
 ```
 
 Then install the XPI file through Thunderbird's Add-ons manager.
@@ -41,14 +40,15 @@ Then install the XPI file through Thunderbird's Add-ons manager.
 
 When composing a reply or forward:
 
-1. **Using the Toolbar Button**: Click the "Send and Archive" button in the compose window
-2. **Using the Keyboard**: Press `Ctrl+Shift+Enter`
-3. **Using the Context Menu**: Right-click the toolbar button
+1. **Using the Toolbar Button**: Click the "Send and Archive" button in the compose window (button is only enabled for replies/forwards)
+2. **Using the Keyboard**: Press `Ctrl+Shift+S`
 
 The extension will:
 1. Send your composed message
 2. Archive the original message (if sending succeeds)
 3. Show a notification (if enabled in settings)
+
+**Note**: The toolbar button will be disabled when composing new messages (not replies or forwards), since there's no original message to archive.
 
 ### Configuration
 
@@ -82,7 +82,8 @@ This extension uses Manifest Version 3 for compatibility with modern Thunderbird
 
 ### Permissions Required
 
-- `compose`: Access compose window details and send messages
+- `compose`: Access compose window details
+- `compose.send`: Send composed messages programmatically
 - `messagesRead`: Read message information to find the original message
 - `messagesMove`: Archive messages
 - `accountsRead`: Access account information for archive operations
@@ -91,11 +92,14 @@ This extension uses Manifest Version 3 for compatibility with modern Thunderbird
 
 ### API Usage
 
-The extension uses proper Thunderbird WebExtension APIs:
-- `messenger.compose.getComposeDetails()`: Get compose window information
-- `messenger.compose.sendMessage()`: Send the composed message
+The extension uses proper Thunderbird WebExtension APIs (not Firefox APIs):
+- `messenger.compose.getComposeDetails()`: Get compose window information including type (reply/forward/new)
+- `messenger.compose.sendMessage(tabId, {mode: 'sendNow'})`: Send the composed message immediately
+- `messenger.composeAction.enable()/disable()`: Control button visibility based on compose type
 - `messenger.messages.archive()`: Archive messages using native functionality
 - `messenger.storage.local`: Store and retrieve settings
+
+**Important**: The extension uses `browser_specific_settings` (not `applications`) in manifest.json for Manifest V3 compatibility.
 
 ## Troubleshooting
 
@@ -165,11 +169,19 @@ For issues, feature requests, or contributions, please check the extension's rep
 
 ## Version History
 
+### 1.0.1 (Bug Fix Release)
+- **FIXED**: Changed keyboard shortcut from `Ctrl+Shift+Enter` to `Ctrl+Shift+S` for better usability
+- **FIXED**: Button now only appears/is enabled in reply and forward windows (disabled for new messages)
+- **FIXED**: Removed `applications` property and replaced with `browser_specific_settings` for Manifest V3 compatibility (no more warning on load)
+- **FIXED**: Removed context menu code that was causing "messenger.menus is undefined" error
+- **FIXED**: Implemented correct Thunderbird API for sending messages using `messenger.compose.sendMessage(tabId, {mode: 'sendNow'})` with proper `compose.send` permission
+- **IMPROVED**: Added detection logic using `ComposeDetails.type` property to identify reply/forward vs new messages
+- **IMPROVED**: Better error handling and user feedback for non-reply windows
+
 ### 1.0.0 (Initial Release)
 - Send and Archive functionality
 - Toolbar button in compose window
-- Keyboard shortcut (Ctrl+Shift+Enter)
-- Context menu integration
+- Keyboard shortcut
 - Options page for notification settings
 - Native archive integration
 - Error handling and notifications
