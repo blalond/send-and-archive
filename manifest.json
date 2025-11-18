@@ -33,7 +33,7 @@
   "commands": {
     "send-and-archive": {
       "suggested_key": {
-        "default": "Ctrl+Alt+Enter"
+        "default": "Ctrl+Shift+Enter"
       },
       "description": "Send and Archive"
     }

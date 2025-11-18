@@ -37,7 +37,7 @@ After installation:
 
 1. Open a compose window (reply to any message or create a new message)
 2. Look for the "Send and Archive" button in the toolbar
-3. Try the keyboard shortcut: `Ctrl+Alt+Enter`
+3. Try the keyboard shortcut: `Ctrl+Shift+Enter`
 4. Access settings: Tools → Add-ons and Themes → Send and Archive → Options
 
 ## Troubleshooting

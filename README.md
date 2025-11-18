@@ -6,7 +6,7 @@ A Thunderbird extension that adds a "Send and Archive" feature to compose window
 ## Features
 
 - **Toolbar Button**: Adds a "Send and Archive" button to the compose window toolbar
-- **Keyboard Shortcut**: Use `Ctrl+Alt+Enter` to quickly send and archive
+- **Keyboard Shortcut**: Use `Ctrl+Shift+Enter` to quickly send and archive
 - **Context Menu**: Right-click the toolbar button for additional options
 - **Smart Archiving**: Only archives when replying to or forwarding messages (not for new messages)
 - **Native Integration**: Uses Thunderbird's built-in archive functionality that respects your archive settings
@@ -42,7 +42,7 @@ Then install the XPI file through Thunderbird's Add-ons manager.
 When composing a reply or forward:
 
 1. **Using the Toolbar Button**: Click the "Send and Archive" button in the compose window
-2. **Using the Keyboard**: Press `Ctrl+Alt+Enter`
+2. **Using the Keyboard**: Press `Ctrl+Shift+Enter`
 3. **Using the Context Menu**: Right-click the toolbar button
 
 The extension will:
@@ -168,7 +168,7 @@ For issues, feature requests, or contributions, please check the extension's rep
 ### 1.0.0 (Initial Release)
 - Send and Archive functionality
 - Toolbar button in compose window
-- Keyboard shortcut (Ctrl+Alt+Enter)
+- Keyboard shortcut (Ctrl+Shift+Enter)
 - Context menu integration
 - Options page for notification settings
 - Native archive integration

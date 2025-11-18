@@ -58,7 +58,7 @@
 **Steps:**
 1. Reply to an existing message
 2. Compose your reply
-3. Press `Ctrl+Alt+Enter`
+3. Press `Ctrl+Shift+Enter`
 
 **Expected Result:**
 - Same behavior as clicking the toolbar button
