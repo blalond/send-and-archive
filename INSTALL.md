@@ -35,10 +35,12 @@ This creates `send-and-archive.xpi` in the current directory.
 
 After installation:
 
-1. Open a compose window (reply to any message or create a new message)
-2. Look for the "Send and Archive" button in the toolbar
-3. Try the keyboard shortcut: `Ctrl+Shift+Enter`
+1. Open a compose window (reply to any message)
+2. Look for the "Send and Archive" button in the toolbar (only visible/enabled in reply and forward windows)
+3. Try the keyboard shortcut: `Ctrl+Shift+S`
 4. Access settings: Tools → Add-ons and Themes → Send and Archive → Options
+
+**Note**: The toolbar button is only enabled when replying to or forwarding messages, not for new messages.
 
 ## Troubleshooting
 

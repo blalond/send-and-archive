@@ -2,7 +2,7 @@
 {
   "manifest_version": 3,
   "name": "Send and Archive",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Send your message and automatically archive the original message being replied to",
   "author": "Your Name",
   "browser_specific_settings": {

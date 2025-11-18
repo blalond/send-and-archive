@@ -21,23 +21,23 @@
 **Steps:**
 1. Load the extension as described above
 2. Open the Browser Console: **Tools** → **Developer Tools** → **Browser Console** (`Ctrl+Shift+J`)
-3. Look for the message: "Send and Archive background script loaded"
+3. Look for the message: "Send and Archive background script loaded (v1.0.3)"
 
 **Expected Result:**
 - Extension loads without errors
-- Console shows successful loading message
+- Console shows successful loading message with version number
 
 ### Test 2: Toolbar Button (New Message)
 
 **Steps:**
 1. Click **"Write"** to compose a new message
 2. Look for the "Send and Archive" button in the compose window toolbar
-3. Click the button
+3. Try to click the button
 
 **Expected Result:**
-- Button is visible in the compose toolbar
-- Message is sent (if valid recipient/subject/body)
-- No archiving occurs (console should show "No original message to archive")
+- Button is visible but **disabled** (grayed out) in the compose toolbar
+- If somehow clicked, a notification appears: "This feature only works for replies and forwards, not new messages."
+- Console shows: "Not a reply/forward - aborting"
 
 ### Test 3: Toolbar Button (Reply)
 
@@ -58,11 +58,12 @@
 **Steps:**
 1. Reply to an existing message
 2. Compose your reply
-3. Press `Ctrl+Shift+Enter`
+3. Press `Ctrl+Shift+S`
 
 **Expected Result:**
 - Same behavior as clicking the toolbar button
-- Reply sent and original archived
+- Reply sent and original archived (if archive folder is configured)
+- Success notification appears (if enabled in settings)
 
 ### Test 5: Options Page
 
@@ -105,15 +106,20 @@
 - Error notification is displayed
 - Compose window remains open
 
-### Test 8: Context Menu
+### Test 8: No Archive Folder Configured
 
 **Steps:**
-1. Open a compose window (reply to a message)
-2. Right-click the "Send and Archive" toolbar button
-3. Look for menu options
+1. Before testing, disable archive for your account:
+   - **Tools** → **Account Settings** → **[Your Account]** → **Copies & Folders** → **Message Archives**
+   - Uncheck "Keep message archives in" or remove the archive location
+2. Reply to a message and use "Send and Archive"
+3. Check the notification and console
 
 **Expected Result:**
-- Context menu appears with extension-related options
+- Message is sent successfully
+- Error notification appears: "Message sent, but archiving failed. Please configure an archive folder in: Tools → Account Settings → Copies & Folders → Message Archives"
+- Console shows archiving error (not "Message archived successfully")
+- Original message remains in its current location (not archived)
 
 ### Test 9: Archive Folder Location
 
@@ -210,7 +216,7 @@ Or simply restart Thunderbird (temporary extensions are automatically removed).
 When reporting issues, please include:
 - Thunderbird version
 - Operating system
-- Extension version (1.0.0)
+- Extension version (current: 1.0.3)
 - Steps to reproduce
 - Console output (from Browser Console)
 - Expected vs actual behavior

@@ -2,7 +2,7 @@
 /**
  * Send and Archive Extension for Thunderbird
  * Background Script - Handles compose window toolbar button and keyboard shortcuts
- * Version 1.0.1 - Fixed API calls and added reply-only detection
+ * Version 1.0.3 - Improved archiving error detection and documentation updates
  */
 
 // Store settings in memory for quick access
@@ -167,18 +167,13 @@ async function archiveOriginalMessage(messageId) {
   try {
     console.log('Archiving message:', messageId);
     
-    // Get the full message details
-    const message = await messenger.messages.get(messageId);
-    console.log('Message details:', message);
-    
-    // Get the account for this message
-    const folder = await messenger.messages.getFolderDetails(message.folder);
-    console.log('Message folder:', folder);
-    
     // Use Thunderbird's built-in archive functionality
-    // The messages.archive() method respects user's archive settings
-    await messenger.messages.archive([messageId]);
+    // The messages.archive() method automatically handles folder details
+    // and respects the user's archive settings
+    // It returns a Promise that resolves on success or rejects on error
+    const result = await messenger.messages.archive([messageId]);
     
+    // If we reach this point, archiving succeeded
     console.log('Message archived successfully');
     
     // Show notification if enabled
@@ -193,12 +188,29 @@ async function archiveOriginalMessage(messageId) {
     
   } catch (error) {
     console.error('Error archiving message:', error);
-    // Show error notification even if notifications are disabled for errors
+    
+    // Determine error message based on error type
+    let errorMsg = 'Message sent, but failed to archive original.';
+    
+    // Check if the error is related to no archive folder being configured
+    if (error.message && (
+      error.message.includes('archive') || 
+      error.message.includes('folder') ||
+      error.message.includes('not configured')
+    )) {
+      errorMsg = 'Message sent, but archiving failed. Please configure an archive folder in: Tools → Account Settings → Copies & Folders → Message Archives';
+    } else if (error.message) {
+      errorMsg = 'Message sent, but failed to archive original: ' + error.message;
+    }
+    
+    console.log('Archive error details:', errorMsg);
+    
+    // Show error notification (always show errors, regardless of notification settings)
     await messenger.notifications.create({
       type: 'basic',
       iconUrl: 'icons/icon-48.png',
       title: 'Send and Archive - Archive Error',
-      message: 'Message sent, but failed to archive original: ' + error.message
+      message: errorMsg
     });
   }
 }
@@ -249,4 +261,4 @@ messenger.commands.onCommand.addListener(async (command) => {
   }
 });
 
-console.log('Send and Archive background script loaded (v1.0.1)');
+console.log('Send and Archive background script loaded (v1.0.3)');

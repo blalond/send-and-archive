@@ -29,7 +29,7 @@ To create an installable XPI file:
 
 ```bash
 cd thunderbird-send-and-archive
-zip -r send-and-archive-v1.0.1.xpi manifest.json background.js options.html options.js icons/ -x "*.DS_Store" "*.git*"
+zip -r send-and-archive-v1.0.3.xpi manifest.json background.js options.html options.js icons/ -x "*.DS_Store" "*.git*"
 ```
 
 Then install the XPI file through Thunderbird's Add-ons manager.
@@ -115,8 +115,11 @@ The extension uses proper Thunderbird WebExtension APIs (not Firefox APIs):
 
 ### Original message not archived
 - Check that you're replying to or forwarding a message (not composing a new one)
-- Verify your account has archive functionality enabled
+- **Most common**: Verify your account has an archive folder configured:
+  - Go to: Tools → Account Settings → [Your Account] → Copies & Folders → Message Archives
+  - Make sure "Keep message archives in" is checked and a location is selected
 - Check the browser console for error messages (Ctrl+Shift+J)
+- The extension will show an error notification if archiving fails
 
 ### Messages archived to wrong folder
 - This extension uses Thunderbird's built-in archive settings
@@ -169,12 +172,25 @@ For issues, feature requests, or contributions, please check the extension's rep
 
 ## Version History
 
-### 1.0.1 (Bug Fix Release)
+### 1.0.3 (Current Release)
+- **FIXED**: Improved archiving success detection - now properly detects when archiving fails (e.g., no archive folder configured)
+- **FIXED**: Only logs "Message archived successfully" and shows notification when archiving actually succeeds
+- **IMPROVED**: Better error handling with descriptive messages when archiving fails
+- **IMPROVED**: Helpful error message directing users to configure archive folder if not set up
+- **UPDATED**: Comprehensive documentation updates across all files
+
+### 1.0.2
+- **FIXED**: Updated keyboard shortcut references in options.html from "Ctrl+Alt+Enter" to correct "Ctrl+Shift+S"
+- **FIXED**: Removed reference to context menu feature in options.html
+- **FIXED**: Archiving error by removing incorrect `messenger.messages.getFolderDetails()` API call
+- **IMPROVED**: Simplified archiving function to directly use the archive API
+
+### 1.0.1
 - **FIXED**: Changed keyboard shortcut from `Ctrl+Shift+Enter` to `Ctrl+Shift+S` for better usability
 - **FIXED**: Button now only appears/is enabled in reply and forward windows (disabled for new messages)
-- **FIXED**: Removed `applications` property and replaced with `browser_specific_settings` for Manifest V3 compatibility (no more warning on load)
+- **FIXED**: Removed `applications` property and replaced with `browser_specific_settings` for Manifest V3 compatibility
 - **FIXED**: Removed context menu code that was causing "messenger.menus is undefined" error
-- **FIXED**: Implemented correct Thunderbird API for sending messages using `messenger.compose.sendMessage(tabId, {mode: 'sendNow'})` with proper `compose.send` permission
+- **FIXED**: Implemented correct Thunderbird API for sending messages using `messenger.compose.sendMessage(tabId, {mode: 'sendNow'})`
 - **IMPROVED**: Added detection logic using `ComposeDetails.type` property to identify reply/forward vs new messages
 - **IMPROVED**: Better error handling and user feedback for non-reply windows
 
