@@ -2,7 +2,7 @@
 /**
  * Send and Archive Extension for Thunderbird
  * Background Script - Handles compose window toolbar button and keyboard shortcuts
- * Version 1.0.3 - Improved archiving error detection and documentation updates
+ * Version 1.0.4 - Proactive archive folder checking to prevent archiving errors
  */
 
 // Store settings in memory for quick access
@@ -64,21 +64,53 @@ async function isReplyOrForward(tabId) {
 }
 
 /**
- * Update button visibility based on compose type
+ * Check if an archive folder is configured for any account
+ * @returns {Promise<boolean>} - True if archive folder is configured, false otherwise
+ */
+async function hasArchiveFolderConfigured() {
+  try {
+    // Try to get the unified archive folder
+    // If no archive folder is configured, this will return null or throw an error
+    const archiveFolder = await messenger.folders.getUnifiedFolder('archives');
+    
+    if (archiveFolder) {
+      console.log('Archive folder is configured');
+      return true;
+    }
+    
+    console.log('No archive folder configured');
+    return false;
+  } catch (error) {
+    // If the API throws an error, it likely means no archive folder is configured
+    console.log('Archive folder check failed (likely not configured):', error.message);
+    return false;
+  }
+}
+
+/**
+ * Update button visibility based on compose type AND archive folder configuration
  * @param {number} tabId - The compose window tab ID
  */
 async function updateButtonVisibility(tabId) {
   try {
     const isReply = await isReplyOrForward(tabId);
+    const hasArchive = await hasArchiveFolderConfigured();
     
-    if (isReply) {
-      // Enable the button for reply/forward windows
+    // Button should only be enabled if BOTH conditions are true:
+    // 1. It's a reply or forward (not a new message)
+    // 2. An archive folder is configured
+    if (isReply && hasArchive) {
+      // Enable the button
       await messenger.composeAction.enable(tabId);
-      console.log('Button enabled for reply/forward window');
+      console.log('Button enabled (reply/forward AND archive folder configured)');
     } else {
-      // Disable the button for new message windows
+      // Disable the button
       await messenger.composeAction.disable(tabId);
-      console.log('Button disabled for new message window');
+      if (!isReply) {
+        console.log('Button disabled (not a reply/forward)');
+      } else if (!hasArchive) {
+        console.log('Button disabled (no archive folder configured)');
+      }
     }
   } catch (error) {
     console.error('Error updating button visibility:', error);
@@ -161,6 +193,7 @@ async function sendAndArchive(tabId) {
 
 /**
  * Archive the original message using Thunderbird's built-in archive functionality
+ * Note: This function assumes archive folder is configured (checked before button is enabled)
  * @param {number} messageId - The message ID to archive
  */
 async function archiveOriginalMessage(messageId) {
@@ -170,10 +203,8 @@ async function archiveOriginalMessage(messageId) {
     // Use Thunderbird's built-in archive functionality
     // The messages.archive() method automatically handles folder details
     // and respects the user's archive settings
-    // It returns a Promise that resolves on success or rejects on error
-    const result = await messenger.messages.archive([messageId]);
+    await messenger.messages.archive([messageId]);
     
-    // If we reach this point, archiving succeeded
     console.log('Message archived successfully');
     
     // Show notification if enabled
@@ -187,30 +218,15 @@ async function archiveOriginalMessage(messageId) {
     }
     
   } catch (error) {
+    // This should rarely happen since we check for archive folder before enabling the button
     console.error('Error archiving message:', error);
     
-    // Determine error message based on error type
-    let errorMsg = 'Message sent, but failed to archive original.';
-    
-    // Check if the error is related to no archive folder being configured
-    if (error.message && (
-      error.message.includes('archive') || 
-      error.message.includes('folder') ||
-      error.message.includes('not configured')
-    )) {
-      errorMsg = 'Message sent, but archiving failed. Please configure an archive folder in: Tools → Account Settings → Copies & Folders → Message Archives';
-    } else if (error.message) {
-      errorMsg = 'Message sent, but failed to archive original: ' + error.message;
-    }
-    
-    console.log('Archive error details:', errorMsg);
-    
-    // Show error notification (always show errors, regardless of notification settings)
+    // Show simplified error notification
     await messenger.notifications.create({
       type: 'basic',
       iconUrl: 'icons/icon-48.png',
       title: 'Send and Archive - Archive Error',
-      message: errorMsg
+      message: 'Message sent, but failed to archive original: ' + (error.message || 'Unknown error')
     });
   }
 }
@@ -261,4 +277,4 @@ messenger.commands.onCommand.addListener(async (command) => {
   }
 });
 
-console.log('Send and Archive background script loaded (v1.0.3)');
+console.log('Send and Archive background script loaded (v1.0.4)');

@@ -1,5 +1,35 @@
 # Changelog
 
+## Version 1.0.4 (2025-11-18)
+
+### Added
+- **background.js**: New `hasArchiveFolderConfigured()` function that proactively checks if an archive folder is configured
+  - Uses `messenger.folders.getUnifiedFolder('archives')` API to check for archive folder presence
+  - Returns true if archive folder exists, false otherwise
+  - Safely handles errors if the API call fails
+
+### Changed
+- **background.js**: Updated `updateButtonVisibility()` function to check BOTH conditions:
+  - Whether it's a reply/forward window (existing check)
+  - Whether an archive folder is configured (new check)
+  - Button is now only enabled if BOTH conditions are true
+  - Improved console logging to indicate why button is disabled
+- **background.js**: Simplified error handling in `archiveOriginalMessage()` function
+  - Removed extensive error type checking since issues are prevented upfront
+  - Simplified error notifications since archive folder is checked before enabling button
+  - Added note in function documentation that archive folder is assumed to be configured
+- **README.md**: Updated documentation to reflect new proactive checking behavior
+  - Updated Features section to mention proactive checking
+  - Updated Usage section to clarify when button is disabled
+  - Updated Troubleshooting section with better guidance about archive folder configuration
+  - Added version 1.0.4 to version history
+- **manifest.json**: Bumped version to 1.0.4
+
+### Improved
+- Button is now disabled preemptively when archiving won't work, providing better user experience
+- Users get immediate visual feedback (disabled button) instead of error messages after the fact
+- Reduced likelihood of "message sent but not archived" scenarios
+
 ## Version 1.0.3 (2025-11-18)
 
 ### Fixed

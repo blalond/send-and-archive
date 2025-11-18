@@ -5,9 +5,10 @@ A Thunderbird extension that adds a "Send and Archive" feature to compose window
 
 ## Features
 
-- **Toolbar Button**: Adds a "Send and Archive" button to the compose window toolbar (only visible in reply/forward windows)
+- **Toolbar Button**: Adds a "Send and Archive" button to the compose window toolbar (only enabled when conditions are met)
 - **Keyboard Shortcut**: Use `Ctrl+Shift+S` to quickly send and archive
 - **Smart Archiving**: Only works when replying to or forwarding messages (button disabled for new messages)
+- **Proactive Checking**: Button is automatically disabled if no archive folder is configured
 - **Native Integration**: Uses Thunderbird's built-in archive functionality that respects your archive settings
 - **Configurable Notifications**: Enable or disable success notifications via the options page
 - **Error Handling**: Only archives if the send operation succeeds
@@ -29,7 +30,7 @@ To create an installable XPI file:
 
 ```bash
 cd thunderbird-send-and-archive
-zip -r send-and-archive-v1.0.3.xpi manifest.json background.js options.html options.js icons/ -x "*.DS_Store" "*.git*"
+zip -r send-and-archive-v1.0.4.xpi manifest.json background.js options.html options.js icons/ -x "*.DS_Store" "*.git*"
 ```
 
 Then install the XPI file through Thunderbird's Add-ons manager.
@@ -40,7 +41,7 @@ Then install the XPI file through Thunderbird's Add-ons manager.
 
 When composing a reply or forward:
 
-1. **Using the Toolbar Button**: Click the "Send and Archive" button in the compose window (button is only enabled for replies/forwards)
+1. **Using the Toolbar Button**: Click the "Send and Archive" button in the compose window (button is only enabled for replies/forwards with archive folder configured)
 2. **Using the Keyboard**: Press `Ctrl+Shift+S`
 
 The extension will:
@@ -48,7 +49,9 @@ The extension will:
 2. Archive the original message (if sending succeeds)
 3. Show a notification (if enabled in settings)
 
-**Note**: The toolbar button will be disabled when composing new messages (not replies or forwards), since there's no original message to archive.
+**Note**: The toolbar button will be disabled if:
+- You're composing a new message (not a reply or forward), since there's no original message to archive
+- No archive folder is configured in your Thunderbird settings
 
 ### Configuration
 
@@ -103,8 +106,12 @@ The extension uses proper Thunderbird WebExtension APIs (not Firefox APIs):
 
 ## Troubleshooting
 
-### Button doesn't appear
+### Button doesn't appear or is disabled
 - Make sure the extension is enabled in the Add-ons manager
+- Verify you're replying to or forwarding a message (not composing a new message)
+- **Check that an archive folder is configured**: The button is automatically disabled if no archive folder is set up
+  - Go to: Tools → Account Settings → [Your Account] → Copies & Folders → Message Archives
+  - Make sure "Keep message archives in" is checked and a location is selected
 - Try restarting Thunderbird
 - Check that you're in a compose window (not the main Thunderbird window)
 
@@ -114,12 +121,14 @@ The extension uses proper Thunderbird WebExtension APIs (not Firefox APIs):
 - Try customizing the shortcut in Thunderbird's settings
 
 ### Original message not archived
-- Check that you're replying to or forwarding a message (not composing a new one)
-- **Most common**: Verify your account has an archive folder configured:
-  - Go to: Tools → Account Settings → [Your Account] → Copies & Folders → Message Archives
-  - Make sure "Keep message archives in" is checked and a location is selected
-- Check the browser console for error messages (Ctrl+Shift+J)
-- The extension will show an error notification if archiving fails
+- This should rarely happen in version 1.0.4+ since the button is disabled when archiving won't work
+- If you still experience this issue:
+  - Check that you're replying to or forwarding a message (not composing a new one)
+  - Verify your account has an archive folder configured:
+    - Go to: Tools → Account Settings → [Your Account] → Copies & Folders → Message Archives
+    - Make sure "Keep message archives in" is checked and a location is selected
+  - Check the browser console for error messages (Ctrl+Shift+J)
+  - The extension will show an error notification if archiving fails
 
 ### Messages archived to wrong folder
 - This extension uses Thunderbird's built-in archive settings
@@ -172,7 +181,14 @@ For issues, feature requests, or contributions, please check the extension's rep
 
 ## Version History
 
-### 1.0.3 (Current Release)
+### 1.0.4 (Current Release)
+- **NEW**: Proactive archive folder checking using `messenger.folders.getUnifiedFolder('archives')` API
+- **IMPROVED**: Button is now automatically disabled if no archive folder is configured
+- **IMPROVED**: Button only enabled when BOTH conditions are met: (1) It's a reply/forward, AND (2) Archive folder exists
+- **IMPROVED**: Simplified error handling since issues are prevented upfront
+- **UPDATED**: Documentation updated to reflect new proactive checking behavior
+
+### 1.0.3
 - **FIXED**: Improved archiving success detection - now properly detects when archiving fails (e.g., no archive folder configured)
 - **FIXED**: Only logs "Message archived successfully" and shows notification when archiving actually succeeds
 - **IMPROVED**: Better error handling with descriptive messages when archiving fails
