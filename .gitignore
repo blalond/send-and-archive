@@ -20,3 +20,6 @@ package-lock.json
 
 # Logs
 *.log
+
+# files archived from misc development
+archive/

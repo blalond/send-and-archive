@@ -2,7 +2,6 @@
 /**
  * Send and Archive Extension for Thunderbird
  * Background Script - Handles compose window toolbar button and keyboard shortcuts
- * Version 1.0.4 - Proactive archive folder checking to prevent archiving errors
  */
 
 // Store settings in memory for quick access
@@ -38,7 +37,7 @@ messenger.storage.onChanged.addListener((changes, areaName) => {
 async function isReplyOrForward(tabId) {
   try {
     const composeDetails = await messenger.compose.getComposeDetails(tabId);
-    
+
     // Check the type property (added in Thunderbird 91/102)
     // Possible values: "new", "reply", "forward", "draft"
     if (composeDetails.type) {
@@ -46,14 +45,14 @@ async function isReplyOrForward(tabId) {
       console.log('Compose type:', composeDetails.type, '- Is reply/forward:', isReply);
       return isReply;
     }
-    
+
     // Fallback: Check for relatedMessageId (added in Thunderbird 95)
     // If there's a related message, it's a reply or forward
     if (composeDetails.relatedMessageId) {
       console.log('Found relatedMessageId:', composeDetails.relatedMessageId);
       return true;
     }
-    
+
     console.log('This is a new message (no type or relatedMessageId found)');
     return false;
   } catch (error) {
@@ -64,20 +63,28 @@ async function isReplyOrForward(tabId) {
 }
 
 /**
- * Check if an archive folder is configured for any account
+ * Check if an archive folder is configured: Account > Copies & Folders > Message Archives
  * @returns {Promise<boolean>} - True if archive folder is configured, false otherwise
  */
-async function hasArchiveFolderConfigured() {
+async function hasArchiveFolderConfigured(tabId) {
   try {
-    // Try to get the unified archive folder
-    // If no archive folder is configured, this will return null or throw an error
-    const archiveFolder = await messenger.folders.getUnifiedFolder('archives');
-    
-    if (archiveFolder) {
+
+    // This relies on unified config, and is not the correct way to do it:
+    // const archiveFolder = await messenger.folders.getUnifiedFolder('archives');
+    // const capabilities = await messenger.folders.getFolderCapabilities(archiveFolder.id);
+
+    // Note: proper behavior is shown by the built-in menu item "Message > Archive" (shortcut A) where it does nothing if Archive folder not configured.
+    // This looks up the folder by "specialUse" but it finds a folder even if it is not configured :
+    const composeDetails = await messenger.compose.getComposeDetails(tabId);
+    const identity = await messenger.identities.get(composeDetails.identityId);
+    const queryAnswer = await messenger.folders.query({ accountId:  identity.accountId, specialUse: ['archives'] });
+    const capabilities = await messenger.folders.getFolderCapabilities(queryAnswer[0].id)
+
+    if (capabilities.canAddMessages) {
       console.log('Archive folder is configured');
       return true;
     }
-    
+
     console.log('No archive folder configured');
     return false;
   } catch (error) {
@@ -94,8 +101,8 @@ async function hasArchiveFolderConfigured() {
 async function updateButtonVisibility(tabId) {
   try {
     const isReply = await isReplyOrForward(tabId);
-    const hasArchive = await hasArchiveFolderConfigured();
-    
+    const hasArchive = await hasArchiveFolderConfigured(tabId);
+
     // Button should only be enabled if BOTH conditions are true:
     // 1. It's a reply or forward (not a new message)
     // 2. An archive folder is configured
@@ -124,7 +131,7 @@ async function updateButtonVisibility(tabId) {
 async function sendAndArchive(tabId) {
   try {
     console.log('Send and Archive triggered for tab:', tabId);
-    
+
     // Verify this is a reply or forward
     const isReply = await isReplyOrForward(tabId);
     if (!isReply) {
@@ -137,13 +144,13 @@ async function sendAndArchive(tabId) {
       });
       return;
     }
-    
+
     // Get the compose details to find the original message
     const composeDetails = await messenger.compose.getComposeDetails(tabId);
-    
+
     // Get the original message ID
     let originalMessageId = composeDetails.relatedMessageId;
-    
+
     if (!originalMessageId) {
       console.log('No related message found - cannot archive');
       await messenger.notifications.create({
@@ -154,21 +161,21 @@ async function sendAndArchive(tabId) {
       });
       return;
     }
-    
+
     console.log('Found related message ID:', originalMessageId);
-    
+
     // Send the message using the correct Thunderbird API
     // The sendMessage function requires the compose.send permission
     console.log('Sending message...');
-    
+
     try {
       // Send the message immediately using sendNow mode
       await messenger.compose.sendMessage(tabId, { mode: 'sendNow' });
       console.log('Message sent successfully');
-      
+
       // Archive the original message
       await archiveOriginalMessage(originalMessageId);
-      
+
     } catch (sendError) {
       console.error('Error sending message:', sendError);
       // Show error notification
@@ -179,7 +186,7 @@ async function sendAndArchive(tabId) {
         message: 'Failed to send message: ' + sendError.message
       });
     }
-    
+
   } catch (error) {
     console.error('Error in sendAndArchive:', error);
     await messenger.notifications.create({
@@ -199,14 +206,14 @@ async function sendAndArchive(tabId) {
 async function archiveOriginalMessage(messageId) {
   try {
     console.log('Archiving message:', messageId);
-    
+
     // Use Thunderbird's built-in archive functionality
     // The messages.archive() method automatically handles folder details
     // and respects the user's archive settings
     await messenger.messages.archive([messageId]);
-    
+
     console.log('Message archived successfully');
-    
+
     // Show notification if enabled
     if (settings.showNotifications) {
       await messenger.notifications.create({
@@ -216,11 +223,11 @@ async function archiveOriginalMessage(messageId) {
         message: 'Message sent and original archived successfully'
       });
     }
-    
+
   } catch (error) {
     // This should rarely happen since we check for archive folder before enabling the button
     console.error('Error archiving message:', error);
-    
+
     // Show simplified error notification
     await messenger.notifications.create({
       type: 'basic',
@@ -263,7 +270,7 @@ messenger.commands.onCommand.addListener(async (command) => {
     console.log('Keyboard shortcut triggered');
     // Get the current compose window
     const windows = await messenger.windows.getAll({ populate: true, windowTypes: ['messageCompose'] });
-    
+
     if (windows.length > 0) {
       // Get the focused window
       const focusedWindow = windows.find(w => w.focused);

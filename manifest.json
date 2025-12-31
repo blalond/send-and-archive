@@ -4,7 +4,7 @@
   "name": "Send and Archive",
   "version": "1.0.4",
   "description": "Send your message and automatically archive the original message being replied to",
-  "author": "Your Name",
+  "author": "blalond",
   "browser_specific_settings": {
     "gecko": {
       "id": "send-and-archive@example.com",
@@ -36,7 +36,7 @@
       "suggested_key": {
         "default": "Ctrl+Shift+S"
       },
-      "description": "Send and Archive"
+      "description": "Send and Archive (Ctrl+Shift+S)"
     }
   },
   "compose_action": {
